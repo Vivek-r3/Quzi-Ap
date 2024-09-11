@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import { auth, signInWithEmailAndPassword, googleProvider } from '../firebase'; // Adjust the path as needed
 import { FaAngleLeft } from 'react-icons/fa6';
+import { signInWithPopup } from 'firebase/auth';
 
 export default function LoginPage() {
 	const router = useRouter();
@@ -14,18 +15,58 @@ export default function LoginPage() {
 		password: '',
 	});
 
-	const [buttonDisabled, setButtonDisabled] = React.useState(false);
-
+	const [buttonDisabled, setButtonDisabled] = React.useState(true);
 	const [loading, setLoading] = React.useState(false);
+	const [error, setError] = React.useState('');
 
 	const onLogin = async () => {
+		setError(''); // Clear previous errors
 		try {
 			setLoading(true);
-			const response = await axios.post('api/users/login', user);
-			console.log('Login successful', response.data);
-			router.push('/profile');
-		} catch (error: any) {
-			console.log('Login failed', error.message);
+			const userCredential = await signInWithEmailAndPassword(auth, user.email, user.password);
+			
+			// Check if email is verified
+			if (!userCredential.user.emailVerified) {
+				setError('Please verify your email address before logging in.');
+				console.log('Email not verified');
+				return;
+			}
+
+			console.log('Login successful');
+			router.push('/');
+		} catch (error) {
+			if (error instanceof Error) {
+				setError('Invalid email or password. Please try again.');
+				console.log('Login failed', error.message);
+			} else {
+				console.log('An unexpected error occurred');
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const onGoogleLogin = async () => {
+		setError(''); // Clear previous errors
+		try {
+			setLoading(true);
+			const userCredential = await signInWithPopup(auth, googleProvider);
+
+			if (!userCredential.user.emailVerified) {
+				setError('Please verify your email address before logging in.');
+				console.log('Email not verified');
+				return;
+			}
+
+			console.log('Google login successful');
+			router.push('/');
+		} catch (error) {
+			if (error instanceof Error) {
+				setError('Failed to login with Google. Please try again.');
+				console.log('Google login failed', error.message);
+			} else {
+				console.log('An unexpected error occurred');
+			}
 		} finally {
 			setLoading(false);
 		}
@@ -47,13 +88,15 @@ export default function LoginPage() {
 				{loading ? "We're logging you in..." : 'Account Login'}
 			</h1>
 
+			{error && <p className="text-red-500 mb-4">{error}</p>}
+
 			<input
 				className="w-[350px] text-slate-800 p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-gray-600"
 				id="email"
 				type="text"
 				value={user.email}
 				onChange={(e) => setUser({ ...user, email: e.target.value })}
-				placeholder="Your Email..."
+				placeholder="Your email..."
 			/>
 
 			<input
@@ -67,8 +110,16 @@ export default function LoginPage() {
 
 			<button
 				onClick={onLogin}
+				disabled={buttonDisabled || loading}
 				className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600 uppercase px-40 py-3 mt-10 font-bold">
-				Login
+				{loading ? 'Logging in...' : 'Login'}
+			</button>
+
+			<button
+				onClick={onGoogleLogin}
+				disabled={loading}
+				className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600 uppercase px-40 py-3 mt-10 font-bold bg-red-500 text-white">
+				{loading ? 'Logging in with Google...' : 'Login with Google'}
 			</button>
 
 			<Link href="/sign-up">
