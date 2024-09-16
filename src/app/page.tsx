@@ -65,7 +65,7 @@ export default function Home() {
         <h2 className="text-5xl font-extrabold mb-4">Are You Ready to Challenge Your Knowledge?</h2>
         <p className="text-xl mb-8">Take our quizzes and see how much you know!</p>
         <a
-          href="#quizzes"
+          href=""
           className="bg-white text-indigo-600 px-6 py-3 rounded-full font-semibold text-lg hover:bg-indigo-600 hover:text-white transition"
         >
           Start Quiz

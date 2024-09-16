@@ -1,30 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-react-app-depl
+  name: my-react-app-deployment  # Changed name for clarity
 spec:
+  replicas: 1  # Number of pod replicas
   selector:
     matchLabels:
-      app: react-app
-  replicas: 1
+      app: react-app  # Matching the app label for the pods
   template:
     metadata:
       labels:
-        app: react-app
+        app: react-app  # Labels for the pods
     spec:
       containers:
-        - name: react-app
-          image: txezio/nextquizz
+      - name: react-app-container  # Changed container name for clarity
+        image: txezio/nextquizz  # Your Docker image
+        ports:
+        - containerPort: 3000  # The port on which the container will run
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-react-app-svc
+  name: my-react-app-service  # Changed service name for clarity
 spec:
-  type: NodePort
-  selector : 
-    app: react-app
+  type: NodePort  # NodePort will expose the service on a static port
+  selector:
+    app: react-app  # Matches the app label from the deployment
   ports:
-    - name : my-app
-      port : 3000
-      targetPort : 3000
+    - name: http
+      port: 3000  # Service port
+      targetPort: 3000  # Target port inside the container
+      nodePort: 30080  
